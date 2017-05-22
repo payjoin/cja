@@ -10,10 +10,10 @@ use std::io::Write;
 
 
 fn main() {
-    let max_coin_value = 10_000_000;
-    let bucket_size = 10;
+    let max_coin_value = 100_000_000_000;
+    let bucket_size = 100;
     let mut buckets: std::collections::BTreeMap<u64, f64> = std::collections::BTreeMap::new();
-    let mut out_file = File::create("distribution-10000000.bin").expect("Unable to open output file");
+    let mut out_file = File::create("distribution.bin").expect("Unable to open output file");
 
     println!("Parsing blocks");
     let num_files = (args().len() - 1) as f64;
