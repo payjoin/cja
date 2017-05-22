@@ -22,10 +22,6 @@ use coinjoin_analyzer::{Partition,Distribution,SubsetSumsFilter,PartitionsSubset
 
 fn main() {
     let matches= get_app().get_matches();
-    if matches.is_present("help") {
-        let _ = get_app().print_help();
-        return
-    }
     match matches.subcommand() {
         ("auto", Some(options))    => auto(options),
         ("analyze", Some(options)) => analyze(options),
@@ -34,10 +30,6 @@ fn main() {
 }
 
 fn analyze(options: &ArgMatches) {
-    if options.is_present("help") {
-        let _ = get_app().print_help();
-        return
-    }
     let inputs: Vec<u64> = value_t!(options.value_of("inputs"), String)
         .unwrap_or_else(|e| e.exit())
         .split(",")
@@ -68,10 +60,6 @@ fn analyze(options: &ArgMatches) {
 }
 
 fn auto(options: &ArgMatches) {
-    if options.is_present("help") {
-        let _ = get_app().print_help();
-        return
-    }
     let parallelism = value_t!(options.value_of("parallelism"), usize)
         .unwrap_or_else(|e| e.exit());
     let _ = rayon::initialize(rayon::Configuration::new().set_num_threads(parallelism));
@@ -112,33 +100,32 @@ fn auto(options: &ArgMatches) {
 }
 
 fn get_app<'a>() -> App<'a, 'a> {
-    App::new("reverse_coinjoin")
+    App::new("cja")
         .author("Felix Konstantin Maurer <maufl@maufl.de>")
         .about("This program generates and analyses CoinJoin transactions.")
+        .version("v0.1")
         .subcommand(SubCommand::with_name("auto")
-                    .arg(Arg::with_name("help")
-                         .short("h")
-                         .long("help")
-                         .takes_value(false))
+                    .about("generate and analyze CoinJoin transactions for various parameters")
                     .arg(Arg::with_name("transactions")
                          .short("t")
-                         .default_value("6")
+                         .default_value("4")
                          .takes_value(true))
                     .arg(Arg::with_name("size")
                          .short("s")
-                         .default_value("18")
+                         .default_value("3")
                          .takes_value(true))
                     .arg(Arg::with_name("shuffled")
                          .short("S")
                          .default_value("none")
-                         .takes_value(true))
+                         .takes_value(true)
+                         .possible_values(&["none", "output", "input", "distributed"]))
                     .arg(Arg::with_name("runs")
                          .short("r")
-                         .default_value("50")
+                         .default_value("5")
                          .takes_value(true))
                     .arg(Arg::with_name("parallelism")
                          .short("p")
-                         .default_value("60")
+                         .default_value("5")
                          .takes_value(true))
                     .arg(Arg::with_name("distribution")
                          .short("d")
@@ -149,10 +136,7 @@ fn get_app<'a>() -> App<'a, 'a> {
                          .takes_value(true))
         )
         .subcommand(SubCommand::with_name("analyze")
-                    .arg(Arg::with_name("help")
-                         .short("h")
-                         .long("help")
-                         .takes_value(false))
+                    .about("analyze single CoinJoin transaction for given inputs and outputs ")
                     .arg(Arg::with_name("inputs")
                          .short("i")
                          .takes_value(true))
