@@ -11,7 +11,7 @@ enum IterResult<T> {
 
 pub struct SumFilteredPartitionIterator<'a> {
     set: Set,
-    filter: &'a Filter<u64>,
+    filter: &'a dyn Filter<u64>,
     tuple_iterator: TupleIterator,
     left_set: Option<Set>,
     left_set_sum: u64,
@@ -19,7 +19,7 @@ pub struct SumFilteredPartitionIterator<'a> {
 }
 
 impl<'a> SumFilteredPartitionIterator<'a> {
-    pub fn new(set: Set, filter: &'a Filter<u64>) -> SumFilteredPartitionIterator {
+    pub fn new(set: Set, filter: &'a dyn Filter<u64>) -> SumFilteredPartitionIterator {
         let mut tuple_iterator = TupleIterator::new(set.clone());
         match tuple_iterator.next() {
             None => {

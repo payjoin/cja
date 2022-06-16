@@ -17,13 +17,13 @@ pub struct BlockHeader {
 
 impl fmt::Display for BlockHeader {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        try!(write!(formatter, "BlockHeader{{ version: {}, previous_block_header_hash: ", self.version));
+        write!(formatter, "BlockHeader{{ version: {}, previous_block_header_hash: ", self.version)?;
         for &byte in self.previous_block_header_hash.as_ref() {
-            try!(write!(formatter, "{:x}", byte));
+            write!(formatter, "{:x}", byte)?;
         }
-        try!(write!(formatter, ", merkle_root_hash: "));
+        write!(formatter, ", merkle_root_hash: ")?;
         for &byte in self.merkle_root_hash.as_ref() {
-            try!(write!(formatter, "{:x}", byte));
+            write!(formatter, "{:x}", byte)?;
         }
         write!(formatter, ", time: {}, n_bits: {}. nonce: {} }}", self.time, self.n_bits, self.nonce)
     }

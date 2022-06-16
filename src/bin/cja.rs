@@ -5,10 +5,12 @@ use std::time::Instant;
 use std::process::exit;
 
 extern crate serde;
-use serde::Deserialize;
 extern crate serde_json;
 extern crate rmp_serde;
-use rmp_serde::Deserializer;
+#[allow(unused_imports)]
+#[macro_use]
+extern crate serde_derive;
+extern crate rmp_serde as rmps;
 
 extern crate rayon;
 use rayon::prelude::*;
@@ -19,6 +21,18 @@ use clap::{Arg,ArgMatches,App,SubCommand};
 
 extern crate coinjoin_analyzer;
 use coinjoin_analyzer::{Partition,Distribution,SubsetSumsFilter,PartitionsSubsetSumsFilter,SumFilteredPartitionIterator,Run};
+
+
+
+
+
+
+use std::error::Error;
+use std::fs::OpenOptions;
+use std::io::{BufReader};
+use std::path::Path;
+
+use serde::de::DeserializeOwned;
 
 fn main() {
     let matches= get_app().get_matches();
@@ -184,15 +198,22 @@ fn run(distribution: &Distribution, num_transactions: u64, transaction_size: u64
 }
 
 fn read_distribution(file_name: &str) -> Result<Distribution, String> {
-    let file = match File::open(file_name) {
-        Ok(file) => file,
-        Err(err) => return Err(format!("Error while opening file: {}", err))
-    };
-    match Deserialize::deserialize(&mut Deserializer::new(file)) {
+    match load_from_rmp::<Distribution>(Path::new(file_name)) {
         Ok(dist) => Ok(dist),
         Err(e) => Err(format!("Could not parse distribution: {}", e))
     }
 }
+
+fn load_from_rmp<T>(file : &Path) -> Result<T, Box<dyn Error>>
+    where T : DeserializeOwned{
+    let file_handler = OpenOptions::new()
+        .read(true)
+        .open(file)?;
+    let buf_reader = BufReader::new(&file_handler);
+    let data : T = rmps::from_read(buf_reader)?;
+    Ok(data)
+}
+
 
 fn partitions_match(a: & Partition, b: & Partition) -> bool {
     'outer: for set_a in a {

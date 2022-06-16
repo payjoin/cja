@@ -5,15 +5,20 @@ extern crate serde;
 use serde::{Serialize};
 
 use std::env::args;
-use std::fs::File;
 use std::io::Write;
+use std::path::Path;
+use std::error::Error;
+use std::fs::OpenOptions;
+use std::fs;
+use std::io::{BufWriter};
+use rmp_serde::Serializer;
 
 
-fn main() {
+
+fn main() -> Result<(), Box<dyn Error>> {
     let max_coin_value = 100_000_000_000;
     let bucket_size = 100;
     let mut buckets: std::collections::BTreeMap<u64, f64> = std::collections::BTreeMap::new();
-    let mut out_file = File::create("distribution.bin").expect("Unable to open output file");
 
     println!("Parsing blocks");
     let num_files = (args().len() - 1) as f64;
@@ -34,7 +39,7 @@ fn main() {
                     }
                     let bucket = output.value as u64 / bucket_size;
                     if buckets.contains_key(&bucket) {
-                        let mut v = buckets.get_mut(&bucket).expect("Unable to get key which buckets contain");
+                        let v = buckets.get_mut(&bucket).expect("Unable to get key which buckets contain");
                          *v = *v + 1f64;
                     } else {
                         buckets.insert(bucket, 1f64);
@@ -58,5 +63,32 @@ fn main() {
     }
     println!("Writing result");
     let dist = Distribution::new(buckets.iter().map(|(key, value)| (*key * bucket_size, *value)).collect());
-    dist.serialize(&mut rmp_serde::Serializer::new(&mut out_file)).unwrap();
+    save_to_rmp::<Distribution>(Path::new("distribution.bin"), &dist)
 }
+
+/// Save Serializable data to a file as RustMessagePack format.
+/// Note if the file already exist. **The existing file is deleted.**
+/*
+pub async fn save_to<T>(file : &Path, data : &T) -> Result<(), Box<dyn Error>>
+    where T : Serialize{
+    save_to_rmp(file,data)
+}
+*/
+
+fn save_to_rmp<T>(file : &Path, data : &T) -> Result<(), Box<dyn Error>>
+    where T : Serialize {
+    if file.exists() {
+        fs::remove_file(file)?;
+    }
+    let file_handler = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(file)?;
+
+    let mut buf= Vec::new();
+    data.serialize(&mut Serializer::new(&mut buf))?;
+    let mut buf_writer = BufWriter::new(&file_handler);
+    buf_writer.write_all(buf.as_slice())?;
+    Ok(())
+}
+

@@ -12,7 +12,7 @@ Clone the repository.
 I used Git LFS to store a coin size distribution file that is quite large. 
 You might therefore need LFS support to checkout the repository.
 Then run `cargo build --release` to build the tools.
-I used Rust version 1.17.
+I used Rust version 1.60.
 
 # Usage
 First, if you can't use the coin size distribution file of this repository, you have to build it yourself.
