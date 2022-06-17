@@ -1,8 +1,7 @@
 extern crate coinjoin_analyzer;
-use coinjoin_analyzer::{BlockFileIterator};
+use coinjoin_analyzer::BlockFileIterator;
 
 use std::env::args;
-
 
 fn main() {
     let mut num_outputs = 0u64;
@@ -11,7 +10,7 @@ fn main() {
     for file in args().skip(1) {
         let iter = match BlockFileIterator::open(file) {
             Ok(i) => i,
-            Err(_) => panic!("Could not read file")
+            Err(_) => panic!("Could not read file"),
         };
         println!("{:.0}%", current_file / num_files * 100f64);
         for block in iter {
@@ -26,5 +25,8 @@ fn main() {
         current_file += 1f64;
     }
 
-    println!("There are {} outputs currently in the blockchain", num_outputs)
+    println!(
+        "There are {} outputs currently in the blockchain",
+        num_outputs
+    )
 }

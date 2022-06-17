@@ -5,19 +5,14 @@ extern crate serde_json;
 #[macro_use]
 extern crate nom;
 mod types;
-pub use types::{Set,Partition,Filter,Run};
+pub use types::{Filter, Partition, Run, Set};
 mod partition;
 pub use partition::SumFilteredPartitionIterator;
 mod distribution;
 pub use distribution::Distribution;
 mod filters;
-pub use filters::{SubsetSumsFilter,PartitionsSubsetSumsFilter};
+pub use filters::{PartitionsSubsetSumsFilter, SubsetSumsFilter};
 mod blockchain;
 pub use blockchain::{
-    Block,
-    Transaction,
-    TransactionInput,
-    TransactionOutput,
-    Outpoint,
-    BlockFileIterator
+    Block, BlockFileIterator, Outpoint, Transaction, TransactionInput, TransactionOutput,
 };

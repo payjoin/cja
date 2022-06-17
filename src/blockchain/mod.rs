@@ -1,9 +1,9 @@
-use std::io::{Read,Error};
-use std::path::Path;
-use std::fs::File;
-use std::fmt;
+use nom::{le_i64, le_u16, le_u32, le_u64, le_u8, IResult, Needed};
 use std::borrow::BorrowMut;
-use nom::{le_u8,le_u16,le_u32,le_u64,le_i64,IResult,Needed};
+use std::fmt;
+use std::fs::File;
+use std::io::{Error, Read};
+use std::path::Path;
 
 #[derive(Debug)]
 pub struct BlockHeader {
@@ -12,12 +12,16 @@ pub struct BlockHeader {
     pub merkle_root_hash: [u8; 32],
     pub time: u32,
     pub n_bits: u32,
-    pub nonce: u32
+    pub nonce: u32,
 }
 
 impl fmt::Display for BlockHeader {
     fn fmt(&self, formatter: &mut fmt::Formatter) -> fmt::Result {
-        write!(formatter, "BlockHeader{{ version: {}, previous_block_header_hash: ", self.version)?;
+        write!(
+            formatter,
+            "BlockHeader{{ version: {}, previous_block_header_hash: ",
+            self.version
+        )?;
         for &byte in self.previous_block_header_hash.as_ref() {
             write!(formatter, "{:x}", byte)?;
         }
@@ -25,16 +29,20 @@ impl fmt::Display for BlockHeader {
         for &byte in self.merkle_root_hash.as_ref() {
             write!(formatter, "{:x}", byte)?;
         }
-        write!(formatter, ", time: {}, n_bits: {}. nonce: {} }}", self.time, self.n_bits, self.nonce)
+        write!(
+            formatter,
+            ", time: {}, n_bits: {}. nonce: {} }}",
+            self.time, self.n_bits, self.nonce
+        )
     }
 }
 
 fn reverse_hash(hash: &[u8; 32]) -> [u8; 32] {
     let mut result: [u8; 32] = [0; 32];
     for i in 0..15 {
-        result[i] = hash[31-i];
-        result[31-i] = hash[i];
-    };
+        result[i] = hash[31 - i];
+        result[31 - i] = hash[i];
+    }
     result
 }
 
@@ -61,7 +69,7 @@ named!(pub parse_block_header<&[u8], BlockHeader>,
 #[derive(Debug)]
 pub struct Outpoint {
     pub hash: [u8; 32],
-    pub index: u32
+    pub index: u32,
 }
 
 named!(pub parse_outpoint<&[u8], Outpoint>,
@@ -79,19 +87,19 @@ named!(pub parse_outpoint<&[u8], Outpoint>,
 pub struct TransactionInput {
     pub previous_output: Outpoint,
     pub sequence: u32,
-    pub script: Vec<u8>
+    pub script: Vec<u8>,
 }
 
 fn parse_compact(input: &[u8]) -> IResult<&[u8], u64> {
     if input.len() < 1 {
-        return IResult::Incomplete(Needed::Size(1))
+        return IResult::Incomplete(Needed::Size(1));
     }
     let rest = &input[1..];
     match input[0] {
         0xff => le_u64(rest),
         0xfe => le_u32(rest).map(|v| v as u64),
         0xfd => le_u16(rest).map(|v| v as u64),
-        n => IResult::Done(rest, n as u64)
+        n => IResult::Done(rest, n as u64),
     }
 }
 
@@ -112,7 +120,7 @@ named!(pub parse_transaction_input<&[u8], TransactionInput>,
 #[derive(Debug)]
 pub struct TransactionOutput {
     pub value: i64,
-    pub pk_script: Vec<u8>
+    pub pk_script: Vec<u8>,
 }
 
 named!(pub parse_transaction_output<&[u8], TransactionOutput>,
@@ -132,7 +140,7 @@ pub struct Transaction {
     pub version: u32,
     pub lock_time: u32,
     pub inputs: Vec<TransactionInput>,
-    pub outputs: Vec<TransactionOutput>
+    pub outputs: Vec<TransactionOutput>,
 }
 
 named!(pub parse_transaction<&[u8], Transaction>,
@@ -155,7 +163,7 @@ named!(pub parse_transaction<&[u8], Transaction>,
 #[derive(Debug)]
 pub struct Block {
     pub header: BlockHeader,
-    pub transactions: Vec<Transaction>
+    pub transactions: Vec<Transaction>,
 }
 
 named!(pub parse_block<&[u8], Block>,
@@ -178,8 +186,8 @@ pub struct BlockFileIterator {
 impl BlockFileIterator {
     pub fn open<P: AsRef<Path>>(path: P) -> Result<BlockFileIterator, Error> {
         match File::open(path) {
-            Ok(file) => Ok(BlockFileIterator{ file: file }),
-            Err(err) => Err(err)
+            Ok(file) => Ok(BlockFileIterator { file: file }),
+            Err(err) => Err(err),
         }
     }
 }
@@ -189,18 +197,30 @@ impl Iterator for BlockFileIterator {
 
     fn next(&mut self) -> Option<Block> {
         let mut buff = [0u8; 4];
-        let n = self.file.read(buff.borrow_mut()).expect("Unable to read magic bytes");
+        let n = self
+            .file
+            .read(buff.borrow_mut())
+            .expect("Unable to read magic bytes");
         if n == 0 {
-            return None
+            return None;
         }
         if buff != [0xf9, 0xbe, 0xb4, 0xd9] {
-            return None
+            return None;
         }
-        let _ = self.file.read(buff.borrow_mut()).expect("Unable to read block size");
-        let size = le_u32(buff.as_ref()).to_full_result().expect("Unable to convert block size") as usize;
+        let _ = self
+            .file
+            .read(buff.borrow_mut())
+            .expect("Unable to read block size");
+        let size = le_u32(buff.as_ref())
+            .to_full_result()
+            .expect("Unable to convert block size") as usize;
         let mut serialized_block = vec![0u8; size];
-        self.file.read(serialized_block.as_mut_slice()).expect("Unable to read block");
-        let block = parse_block(serialized_block.as_slice()).to_full_result().expect("Unabled to parse block");
+        self.file
+            .read(serialized_block.as_mut_slice())
+            .expect("Unable to read block");
+        let block = parse_block(serialized_block.as_slice())
+            .to_full_result()
+            .expect("Unabled to parse block");
         Some(block)
     }
 }

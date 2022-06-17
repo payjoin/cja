@@ -3,14 +3,14 @@ pub type Partition = Vec<Set>;
 #[derive(Serialize, Deserialize)]
 pub struct Transaction {
     pub inputs: Set,
-    pub outputs: Set
+    pub outputs: Set,
 }
 
 impl Transaction {
     pub fn new(inputs: Set, outputs: Set) -> Transaction {
         Transaction {
             inputs: inputs,
-            outputs: outputs
+            outputs: outputs,
         }
     }
 }

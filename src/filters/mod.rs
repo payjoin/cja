@@ -2,11 +2,11 @@ extern crate bloom;
 use self::bloom::BloomFilter;
 extern crate num;
 use self::num::bigint::BigUint;
-use self::num::traits::{Zero, One};
+use self::num::traits::{One, Zero};
 
 use std::u32;
 
-use types::{Set,Partition,Filter};
+use types::{Filter, Partition, Set};
 
 #[cfg(test)]
 mod test;
@@ -29,7 +29,7 @@ pub fn is_subset_sum(set: &[u64], sum: &u64) -> bool {
     let tail_sum: &u64 = &tail.iter().sum();
     if head > sum {
         if tail_sum < sum {
-            return false
+            return false;
         }
         return is_subset_sum(tail, sum);
     }
@@ -47,7 +47,7 @@ pub struct SubsetSumIterator<'a> {
     set: &'a Set,
     set_size: u64,
     power_set_size: BigUint,
-    pattern: BigUint
+    pattern: BigUint,
 }
 
 impl<'a> SubsetSumIterator<'a> {
@@ -57,7 +57,7 @@ impl<'a> SubsetSumIterator<'a> {
             set: set,
             set_size: set_size as u64,
             power_set_size: BigUint::one() << set_size,
-            pattern: Zero::zero()
+            pattern: Zero::zero(),
         }
     }
 }
@@ -67,7 +67,7 @@ impl<'a> Iterator for SubsetSumIterator<'a> {
 
     fn next(&mut self) -> Option<u64> {
         if self.pattern >= self.power_set_size {
-            return None
+            return None;
         };
         let sum = (0..self.set_size).fold(0, |acc, i| {
             let i: usize = i as usize;
@@ -77,7 +77,7 @@ impl<'a> Iterator for SubsetSumIterator<'a> {
             } else {
                 match self.set.get(i) {
                     Some(value) => acc + value,
-                    None => acc
+                    None => acc,
                 }
             }
         });
@@ -85,7 +85,6 @@ impl<'a> Iterator for SubsetSumIterator<'a> {
         Some(sum)
     }
 }
-
 
 pub struct SubsetSumsFilter<'a> {
     set: &'a Set,
@@ -110,11 +109,10 @@ impl<'a> SubsetSumsFilter<'a> {
 }
 
 impl<'a> Filter<u64> for SubsetSumsFilter<'a> {
-
     fn contains(&self, sum: &u64) -> bool {
         match self.bloom_filter.contains(&sum) {
             false => false,
-            true => is_subset_sum(self.set.as_slice(), sum)
+            true => is_subset_sum(self.set.as_slice(), sum),
         }
     }
 }
@@ -127,15 +125,15 @@ pub struct PartitionsSubsetSumsFilter<'a> {
 impl<'a> PartitionsSubsetSumsFilter<'a> {
     pub fn new(partitions: &'a Vec<Partition>) -> PartitionsSubsetSumsFilter {
         let coins = match partitions.first() {
-            Some(partition) => partition.iter().flat_map(|set| set.iter() ).count() as u32,
-            None => 0
+            Some(partition) => partition.iter().flat_map(|set| set.iter()).count() as u32,
+            None => 0,
         };
         let mut filter = BloomFilter::with_rate(0.01, coins / 2);
         for partition in partitions {
             for set in partition {
                 filter.insert(&set.iter().sum::<u64>().clone());
-            };
-        };
+            }
+        }
         PartitionsSubsetSumsFilter {
             partitions: partitions,
             bloom_filter: filter,
@@ -144,18 +142,17 @@ impl<'a> PartitionsSubsetSumsFilter<'a> {
 }
 
 impl<'a> Filter<u64> for PartitionsSubsetSumsFilter<'a> {
-
     fn contains(&self, sum: &u64) -> bool {
         if !self.bloom_filter.contains(&sum) {
-            return false
+            return false;
         }
         for partition in self.partitions {
             for set in partition {
                 if sum == &set.iter().sum::<u64>() {
                     return true;
                 };
-            };
-        };
-        return false
+            }
+        }
+        return false;
     }
 }

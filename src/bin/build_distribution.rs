@@ -1,19 +1,17 @@
 extern crate coinjoin_analyzer;
-use coinjoin_analyzer::{Distribution,BlockFileIterator};
+use coinjoin_analyzer::{BlockFileIterator, Distribution};
 extern crate rmp_serde;
 extern crate serde;
-use serde::{Serialize};
+use serde::Serialize;
 
+use rmp_serde::Serializer;
 use std::env::args;
+use std::error::Error;
+use std::fs;
+use std::fs::OpenOptions;
+use std::io::BufWriter;
 use std::io::Write;
 use std::path::Path;
-use std::error::Error;
-use std::fs::OpenOptions;
-use std::fs;
-use std::io::{BufWriter};
-use rmp_serde::Serializer;
-
-
 
 fn main() -> Result<(), Box<dyn Error>> {
     let max_coin_value = 100_000_000_000;
@@ -26,7 +24,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     for file in args().skip(1) {
         let iter = match BlockFileIterator::open(file) {
             Ok(i) => i,
-            Err(_) => panic!("Could not read file")
+            Err(_) => panic!("Could not read file"),
         };
         print!("{:.0}% ", current_file / num_files * 100f64);
         for block in iter {
@@ -35,12 +33,14 @@ fn main() -> Result<(), Box<dyn Error>> {
             for transaction in block.transactions.iter() {
                 for output in transaction.outputs.iter() {
                     if output.value > max_coin_value {
-                        continue
+                        continue;
                     }
                     let bucket = output.value as u64 / bucket_size;
                     if buckets.contains_key(&bucket) {
-                        let v = buckets.get_mut(&bucket).expect("Unable to get key which buckets contain");
-                         *v = *v + 1f64;
+                        let v = buckets
+                            .get_mut(&bucket)
+                            .expect("Unable to get key which buckets contain");
+                        *v = *v + 1f64;
                     } else {
                         buckets.insert(bucket, 1f64);
                     }
@@ -62,7 +62,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         *value = *value / previous;
     }
     println!("Writing result");
-    let dist = Distribution::new(buckets.iter().map(|(key, value)| (*key * bucket_size, *value)).collect());
+    let dist = Distribution::new(
+        buckets
+            .iter()
+            .map(|(key, value)| (*key * bucket_size, *value))
+            .collect(),
+    );
     save_to_rmp::<Distribution>(Path::new("distribution.bin"), &dist)
 }
 
@@ -75,20 +80,18 @@ pub async fn save_to<T>(file : &Path, data : &T) -> Result<(), Box<dyn Error>>
 }
 */
 
-fn save_to_rmp<T>(file : &Path, data : &T) -> Result<(), Box<dyn Error>>
-    where T : Serialize {
+fn save_to_rmp<T>(file: &Path, data: &T) -> Result<(), Box<dyn Error>>
+where
+    T: Serialize,
+{
     if file.exists() {
         fs::remove_file(file)?;
     }
-    let file_handler = OpenOptions::new()
-        .write(true)
-        .create_new(true)
-        .open(file)?;
+    let file_handler = OpenOptions::new().write(true).create_new(true).open(file)?;
 
-    let mut buf= Vec::new();
+    let mut buf = Vec::new();
     data.serialize(&mut Serializer::new(&mut buf))?;
     let mut buf_writer = BufWriter::new(&file_handler);
     buf_writer.write_all(buf.as_slice())?;
     Ok(())
 }
-
