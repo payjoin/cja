@@ -8,10 +8,7 @@ pub struct Transaction {
 
 impl Transaction {
     pub fn new(inputs: Set, outputs: Set) -> Transaction {
-        Transaction {
-            inputs: inputs,
-            outputs: outputs,
-        }
+        Transaction { inputs, outputs }
     }
 }
 

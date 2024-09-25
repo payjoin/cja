@@ -16,7 +16,7 @@ fn main() {
         for block in iter {
             for transaction in block.transactions.iter() {
                 for output in transaction.outputs.iter() {
-                    if output.pk_script.len() > 0 {
+                    if !output.pk_script.is_empty() {
                         num_outputs += 1
                     }
                 }

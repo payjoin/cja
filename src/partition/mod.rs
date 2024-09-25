@@ -24,16 +24,16 @@ impl<'a> SumFilteredPartitionIterator<'a> {
         match tuple_iterator.next() {
             None => SumFilteredPartitionIterator {
                 set: set.clone(),
-                filter: filter,
-                tuple_iterator: tuple_iterator,
+                filter,
+                tuple_iterator,
                 left_set_sum: set.iter().sum(),
                 left_set: Some(set),
                 right_partitions_iterator: None,
             },
             Some((left, right)) => SumFilteredPartitionIterator {
-                set: set,
-                filter: filter.clone(),
-                tuple_iterator: tuple_iterator,
+                set,
+                filter,
+                tuple_iterator,
                 left_set_sum: left.iter().sum(),
                 left_set: Some(left),
                 right_partitions_iterator: Some(Box::new(SumFilteredPartitionIterator::new(
@@ -66,7 +66,7 @@ impl<'a> SumFilteredPartitionIterator<'a> {
                     self.left_set = Some(left.clone());
                     self.left_set_sum = left.iter().sum();
                     self.right_partitions_iterator = Some(Box::new(
-                        SumFilteredPartitionIterator::new(right.clone(), self.filter.clone()),
+                        SumFilteredPartitionIterator::new(right.clone(), self.filter),
                     ));
                     return IterResult::Skip;
                 }
@@ -91,7 +91,7 @@ impl<'a> SumFilteredPartitionIterator<'a> {
                     self.left_set = Some(left.clone());
                     self.left_set_sum = left.iter().sum();
                     self.right_partitions_iterator = Some(Box::new(
-                        SumFilteredPartitionIterator::new(right.clone(), self.filter.clone()),
+                        SumFilteredPartitionIterator::new(right.clone(), self.filter),
                     ));
                     IterResult::Skip
                 }
@@ -123,9 +123,9 @@ pub struct TupleIterator {
 
 impl TupleIterator {
     fn new(set: Set) -> TupleIterator {
-        let first = match set.get(0) {
+        let first = match set.first() {
             Some(v) => v.to_owned(),
-            None => 0 as u64,
+            None => 0_u64,
         };
         let max_pattern = match set.len() {
             0 => 0,
@@ -133,10 +133,10 @@ impl TupleIterator {
             v => 2u64.pow(v as u32 - 1) - 1,
         };
         TupleIterator {
-            first: first,
-            set: set,
+            first,
+            set,
             current_pattern: 1,
-            max_pattern: max_pattern,
+            max_pattern,
         }
     }
 }
@@ -158,6 +158,6 @@ impl Iterator for TupleIterator {
             }
         }
         self.current_pattern += 1;
-        return Some((left_set, right_set));
+        Some((left_set, right_set))
     }
 }

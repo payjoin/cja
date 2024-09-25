@@ -50,9 +50,9 @@ fn regression_test_sum_filtered_partition_iterator() {
             assert!(
                 partition_tuples
                     .iter()
-                    .any(|&(ref in_p, ref out_p)| partition_eq(&in_partition, in_p)
+                    .any(|(in_p, out_p)| partition_eq(&in_partition, in_p)
                         && partition_eq(&out_partition, out_p)),
-                "For expected mapping {:?} {:?} no mapping was generated."
+                "{}", "For expected mapping {:?} {:?} no mapping was generated."
             )
         }
     }

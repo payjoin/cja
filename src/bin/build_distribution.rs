@@ -36,30 +36,30 @@ fn main() -> Result<(), Box<dyn Error>> {
                         continue;
                     }
                     let bucket = output.value as u64 / bucket_size;
-                    if buckets.contains_key(&bucket) {
+                    if let std::collections::btree_map::Entry::Vacant(e) = buckets.entry(bucket) {
+                        e.insert(1f64);
+                    } else {
                         let v = buckets
                             .get_mut(&bucket)
                             .expect("Unable to get key which buckets contain");
-                        *v = *v + 1f64;
-                    } else {
-                        buckets.insert(bucket, 1f64);
+                        *v += 1f64;
                     }
                 }
             }
         }
-        println!("");
+        println!();
         current_file += 1f64;
     }
 
     println!("Cumulating buckets");
     let mut previous = 0f64;
     for value in buckets.values_mut() {
-        *value = *value + previous;
+        *value += previous;
         previous = *value;
     }
     println!("Normalizing buckets");
     for value in buckets.values_mut() {
-        *value = *value / previous;
+        *value /= previous;
     }
     println!("Writing result");
     let dist = Distribution::new(

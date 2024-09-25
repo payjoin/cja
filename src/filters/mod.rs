@@ -15,7 +15,7 @@ pub fn is_subset_sum(set: &[u64], sum: &u64) -> bool {
     if sum == &0u64 {
         return true;
     }
-    if set.len() < 1 {
+    if set.is_empty() {
         return false;
     }
     if set.len() == 1 {
@@ -54,7 +54,7 @@ impl<'a> SubsetSumIterator<'a> {
     fn new(set: &'a Set) -> SubsetSumIterator {
         let set_size = set.len();
         SubsetSumIterator {
-            set: set,
+            set,
             set_size: set_size as u64,
             power_set_size: BigUint::one() << set_size,
             pattern: Zero::zero(),
@@ -102,7 +102,7 @@ impl<'a> SubsetSumsFilter<'a> {
             filter.insert(&element)
         }
         SubsetSumsFilter {
-            set: set,
+            set,
             bloom_filter: filter,
         }
     }
@@ -135,7 +135,7 @@ impl<'a> PartitionsSubsetSumsFilter<'a> {
             }
         }
         PartitionsSubsetSumsFilter {
-            partitions: partitions,
+            partitions,
             bloom_filter: filter,
         }
     }
@@ -153,6 +153,6 @@ impl<'a> Filter<u64> for PartitionsSubsetSumsFilter<'a> {
                 };
             }
         }
-        return false;
+        false
     }
 }

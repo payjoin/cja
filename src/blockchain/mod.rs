@@ -56,12 +56,12 @@ named!(pub parse_block_header<&[u8], BlockHeader>,
                nonce: le_u32 >>
 
                (BlockHeader{
-                   version: version,
+                   version,
                    previous_block_header_hash: reverse_hash(&previous_block_header_hash),
                    merkle_root_hash: reverse_hash(&merkle_root_hash),
-                   time: time,
-                   n_bits: n_bits,
-                   nonce: nonce
+                   time,
+                   n_bits,
+                   nonce
                })
        )
 );
@@ -78,7 +78,7 @@ named!(pub parse_outpoint<&[u8], Outpoint>,
                index: le_u32 >>
                (Outpoint{
                    hash: reverse_hash(&hash),
-                   index: index
+                   index
                })
        )
 );
@@ -91,7 +91,7 @@ pub struct TransactionInput {
 }
 
 fn parse_compact(input: &[u8]) -> IResult<&[u8], u64> {
-    if input.len() < 1 {
+    if input.is_empty() {
         return IResult::Incomplete(Needed::Size(1));
     }
     let rest = &input[1..];
@@ -110,9 +110,9 @@ named!(pub parse_transaction_input<&[u8], TransactionInput>,
                script: take!(script_size) >>
                sequence: le_u32 >>
                (TransactionInput{
-                   previous_output: previous_output,
+                   previous_output,
                    script: script.to_vec(),
-                   sequence: sequence
+                   sequence
                })
        )
 );
@@ -129,7 +129,7 @@ named!(pub parse_transaction_output<&[u8], TransactionOutput>,
                script_size: parse_compact >>
                pk_script: take!(script_size) >>
                (TransactionOutput{
-                   value: value,
+                   value,
                    pk_script: pk_script.to_vec()
                })
        )
@@ -152,10 +152,10 @@ named!(pub parse_transaction<&[u8], Transaction>,
                outputs: count!(parse_transaction_output, tx_out_count as usize) >>
                lock_time: le_u32 >>
                (Transaction{
-                   version: version,
-                   lock_time: lock_time,
-                   inputs: inputs,
-                   outputs: outputs
+                   version,
+                   lock_time,
+                   inputs,
+                   outputs
                })
        )
 );
@@ -173,8 +173,8 @@ named!(pub parse_block<&[u8], Block>,
                transactions: count!(parse_transaction, tx_count as usize) >>
 
                (Block{
-                   header: header,
-                   transactions: transactions
+                   header,
+                   transactions
                })
        )
 );
@@ -186,7 +186,7 @@ pub struct BlockFileIterator {
 impl BlockFileIterator {
     pub fn open<P: AsRef<Path>>(path: P) -> Result<BlockFileIterator, Error> {
         match File::open(path) {
-            Ok(file) => Ok(BlockFileIterator { file: file }),
+            Ok(file) => Ok(BlockFileIterator { file }),
             Err(err) => Err(err),
         }
     }
