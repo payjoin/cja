@@ -114,6 +114,11 @@ impl<'a> Iterator for SumFilteredPartitionIterator<'a> {
     }
 }
 
+/// Enumerates all 2-partitions (all pairs of a non-empty proper subset and its
+/// complement, distinct up to equality of unordered pairs) of a Set.
+///
+/// The maximum size of the set is technically 64, practically limited by
+/// running time which is $O(2^n)$.
 pub struct TupleIterator {
     first: u64,
     set: Set,
@@ -123,6 +128,10 @@ pub struct TupleIterator {
 
 impl TupleIterator {
     fn new(set: Set) -> TupleIterator {
+        // The powerset is indexed by a u64 used as a bit vector, so sizes
+        // larger than 64 are not supported.
+        assert!(set.len() <= 64);
+
         let first = match set.first() {
             Some(v) => v.to_owned(),
             None => 0_u64,
