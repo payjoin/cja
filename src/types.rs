@@ -1,5 +1,11 @@
+/// An ordered multi-set of natural numbers represented as a vector. The order
+/// has no meaning apart from indexing the elements so they can be identified.
 pub type Set = Vec<u64>;
+
 pub type Partition = Vec<Set>;
+
+/// An abstract representation of a Bitcoin transaction as two sets of natural
+/// numbers.
 #[derive(Serialize, Deserialize)]
 pub struct Transaction {
     pub inputs: Set,
