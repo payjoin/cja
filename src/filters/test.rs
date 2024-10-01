@@ -6,31 +6,31 @@ fn test_is_subset_sum() {
     let mut set = vec![1, 2, 3, 4, 5, 6, 7];
     for subsetsum in SubsetSumIterator::new(&set) {
         assert!(
-            is_subset_sum(&set.as_slice(), &subsetsum),
-            format!(
+            is_subset_sum(set.as_slice(), &subsetsum),
+            
                 "{} is a subset sum of {:?} but is_subset_sum returned false",
                 subsetsum, set
-            )
+            
         )
     }
     set = vec![43, 234, 2, 3453, 32, 23432];
     for subsetsum in SubsetSumIterator::new(&set) {
         assert!(
-            is_subset_sum(&set.as_slice(), &subsetsum),
-            format!(
+            is_subset_sum(set.as_slice(), &subsetsum),
+            
                 "{} is a subset sum of {:?} but is_subset_sum returned false",
                 subsetsum, set
-            )
+            
         )
     }
     set = vec![0, 23, 434, 4343, 234];
     for subsetsum in SubsetSumIterator::new(&set) {
         assert!(
-            is_subset_sum(&set.as_slice(), &subsetsum),
-            format!(
+            is_subset_sum(set.as_slice(), &subsetsum),
+            
                 "{} is a subset sum of {:?} but is_subset_sum returned false",
                 subsetsum, set
-            )
+            
         )
     }
 }

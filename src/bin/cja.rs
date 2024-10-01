@@ -46,7 +46,7 @@ fn main() {
 fn analyze(options: &ArgMatches) {
     let inputs: Vec<u64> = value_t!(options.value_of("inputs"), String)
         .unwrap_or_else(|e| e.exit())
-        .split(",")
+        .split(',')
         .map(|i| {
             i.parse::<u64>().unwrap_or_else(|e| {
                 println!("Invalid input value {}: {}", i, e);
@@ -56,7 +56,7 @@ fn analyze(options: &ArgMatches) {
         .collect();
     let outputs: Vec<u64> = value_t!(options.value_of("outputs"), String)
         .unwrap_or_else(|e| e.exit())
-        .split(",")
+        .split(',')
         .map(|o| {
             o.parse::<u64>().unwrap_or_else(|e| {
                 println!("Invalid output value {}: {}", o, e);
@@ -83,7 +83,7 @@ fn analyze(options: &ArgMatches) {
             }
         }
     }
-    for &(ref input_sets, ref output_sets) in partition_tuples.iter() {
+    for (input_sets, output_sets) in partition_tuples.iter() {
         println!(
             "Input sets: {:?} Output sets: {:?}",
             input_sets, output_sets
@@ -98,9 +98,9 @@ fn auto(options: &ArgMatches) {
         Some(string) => string,
         None => return print!("No distribution file given!"),
     };
-    let distribution = match read_distribution(&distribution_file_name) {
+    let distribution = match read_distribution(distribution_file_name) {
         Ok(dist) => dist,
-        Err(err) => return print!("Error while reading distribution: {}\n", err),
+        Err(err) => return println!("Error while reading distribution: {}", err),
     };
     let transactions = value_t!(options.value_of("transactions"), u64).unwrap_or_else(|e| e.exit());
     let transaction_size = value_t!(options.value_of("size"), u64).unwrap_or_else(|e| e.exit());
@@ -228,12 +228,12 @@ fn run(
     }
     let duration = now.elapsed();
     Run {
-        num_transactions: num_transactions,
+        num_transactions,
         num_inputs_per_transaction: transaction_size,
         original_transactions: transactions,
-        in_coins: in_coins,
-        out_coins: out_coins,
-        partition_tuples: partition_tuples,
+        in_coins,
+        out_coins,
+        partition_tuples,
         duration_secs: duration.as_secs(),
         duration_nano: duration.subsec_nanos(),
     }

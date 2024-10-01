@@ -29,7 +29,7 @@ fn realize_subsum(v: &Vec<u64>, sum: u64) -> Vec<u64> {
 impl Distribution {
     pub fn new(cumulative_normalized: Vec<(u64, f64)>) -> Distribution {
         Distribution {
-            cumulative_normalized: cumulative_normalized,
+            cumulative_normalized,
         }
     }
 
@@ -149,7 +149,7 @@ impl Distribution {
             let Open01(rand) = random::<Open01<f64>>();
             let coin = match self
                 .cumulative_normalized
-                .binary_search_by(|&(_, ref probability)| {
+                .binary_search_by(|(_, probability)| {
                     probability
                         .partial_cmp(&rand)
                         .expect("Impossible situation")

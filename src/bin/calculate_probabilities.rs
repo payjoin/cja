@@ -20,7 +20,7 @@ fn main() {
     );
     print!("\tinput_input_zeros\tinput_input_ones\tinput_input_average_other\tinput_input_average");
     print!("\toutput_output_zeros\toutput_output_ones\toutput_output_average_other\toutput_output_average");
-    println!("");
+    println!();
     for run in result {
         let non_derived_partitions = filter_derived_partitions(&run.partition_tuples);
         print!(
@@ -58,7 +58,7 @@ fn main() {
                 zeros, ones, average_other, average
             );
         };
-        println!("")
+        println!()
     }
 }
 
@@ -74,7 +74,7 @@ fn filter_derived_partitions(
 ) -> Vec<(Partition, Partition)> {
     let max_index = partitions
         .iter()
-        .map(|&(ref in_p, _)| in_p.len())
+        .map(|(in_p, _)| in_p.len())
         .max()
         .unwrap();
     let mut sorted_partitions: Vec<Vec<&(Partition, Partition)>> = Vec::with_capacity(max_index);
@@ -125,7 +125,7 @@ fn is_derived(part: &(Partition, Partition), plus_part: &(Partition, Partition))
     if in_partition_retained.len() == 1 && plus_in_partition.len() == 2 {
         return true;
     }
-    return false;
+    false
 }
 
 #[test]
@@ -157,8 +157,7 @@ fn aggregate_probabilities(probabilities: &Vec<f64>) -> (f64, f64, f64, f64) {
     let ones = probabilities.iter().filter(|&&p| p == 1f64).count() as f64;
     let other: Vec<f64> = probabilities
         .iter()
-        .filter(|&&p| p > 0f64 && p < 1f64)
-        .map(|&e| e)
+        .filter(|&&p| p > 0f64 && p < 1f64).copied()
         .collect();
     let average_other = average(&other);
     let average = average(probabilities);
@@ -172,17 +171,17 @@ fn in_out_probability(
 ) -> f64 {
     partition_tuples
         .iter()
-        .filter(|&&(ref in_partition, ref out_partition)| {
+        .filter(|&(in_partition, out_partition)| {
             let in_set = match in_partition
                 .iter()
-                .find(|set| set.iter().find(|&coin| coin == in_coin).is_some())
+                .find(|set| set.iter().any(|coin| coin == in_coin))
             {
                 Some(set) => set,
                 None => panic!("Did not find in coin in partition"),
             };
             let out_set = match out_partition
                 .iter()
-                .find(|set| set.iter().find(|&coin| coin == out_coin).is_some())
+                .find(|set| set.iter().any(|coin| coin == out_coin))
             {
                 Some(set) => set,
                 None => panic!("Did not find out coin in partition"),
@@ -216,12 +215,12 @@ fn in_in_probability(
 ) -> f64 {
     partition_tuples
         .iter()
-        .filter(|&&(ref in_partition, _)| {
+        .filter(|&(in_partition, _)| {
             in_partition
                 .iter()
                 .find(|set| {
-                    set.iter().find(|&coin| coin == first_in_coin).is_some()
-                        && set.iter().find(|&coin| coin == second_in_coin).is_some()
+                    set.iter().any(|coin| coin == first_in_coin)
+                        && set.iter().any(|coin| coin == second_in_coin)
                 })
                 .is_some()
         })
@@ -238,7 +237,7 @@ fn aggregated_in_in_probability(
         .enumerate()
         .flat_map(|(i, first_in_coin)| {
             in_coins.iter().skip(i + 1).map(move |second_in_coin| {
-                in_in_probability(first_in_coin, second_in_coin, &partition_tuples)
+                in_in_probability(first_in_coin, second_in_coin, partition_tuples)
             })
         })
         .collect();
@@ -252,12 +251,12 @@ fn out_out_probability(
 ) -> f64 {
     partition_tuples
         .iter()
-        .filter(|&&(_, ref out_partition)| {
+        .filter(|&(_, out_partition)| {
             out_partition
                 .iter()
                 .find(|set| {
-                    set.iter().find(|&coin| coin == first_out_coin).is_some()
-                        && set.iter().find(|&coin| coin == second_out_coin).is_some()
+                    set.iter().any(|coin| coin == first_out_coin)
+                        && set.iter().any(|coin| coin == second_out_coin)
                 })
                 .is_some()
         })
@@ -274,7 +273,7 @@ fn aggregated_out_out_probability(
         .enumerate()
         .flat_map(|(i, first_out_coin)| {
             out_coins.iter().skip(i + 1).map(move |second_out_coin| {
-                out_out_probability(first_out_coin, second_out_coin, &partition_tuples)
+                out_out_probability(first_out_coin, second_out_coin, partition_tuples)
             })
         })
         .collect();
